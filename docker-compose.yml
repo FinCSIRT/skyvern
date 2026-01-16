@@ -1,9 +1,6 @@
 version: '3.8'
 
 services:
-  # =========================================================
-  # 🛡️ VPN GATEWAY (Renamed to skyvern-vpn)
-  # =========================================================
   skyvern-vpn:
     image: qmcgaw/gluetun
     container_name: skyvern-vpn
@@ -20,22 +17,16 @@ services:
       - TZ=${TIMEZONE}
       - FIREWALL_OUTBOUND_SUBNETS=172.16.0.0/12,192.168.0.0/16,10.0.0.0/8
     ports:
-      - 8889:8888/tcp  # 8889 to avoid conflict with Lookyloo
+      - 8889:8888/tcp
     networks:
       - dokploy-network
     restart: always
-    
-    # -----------------------------------------------------
-    # TRAEFIK LABELS FOR SKYVERN API
-    # -----------------------------------------------------
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.skyvern-api.rule=Host(`${SKYVERN_API_DOMAIN}`)"
       - "traefik.http.routers.skyvern-api.entrypoints=websecure"
       - "traefik.http.routers.skyvern-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.skyvern-api.loadbalancer.server.port=8000"
-      
-      # CORS Middleware
       - "traefik.http.routers.skyvern-api.middlewares=skyvern-cors"
       - "traefik.http.middlewares.skyvern-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
       - "traefik.http.middlewares.skyvern-cors.headers.accesscontrolalloworiginlist=https://${SKYVERN_UI_DOMAIN}"
@@ -63,10 +54,7 @@ services:
   skyvern:
     image: public.ecr.aws/skyvern/skyvern:latest
     restart: on-failure
-    
-    # ✅ CORRECT REFERENCE: Points to 'skyvern-vpn' service
     network_mode: "service:skyvern-vpn"
-    
     volumes:
       - ./artifacts:/data/artifacts
       - ./videos:/data/videos
@@ -87,14 +75,11 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - OLLAMA_SERVER_URL=${OLLAMA_SERVER_URL}
       - OLLAMA_SUPPORTS_VISION=${OLLAMA_SUPPORTS_VISION}
-    
     depends_on:
       postgres:
         condition: service_healthy
-      # ✅ CORRECT REFERENCE: Points to 'skyvern-vpn' service
       skyvern-vpn:
         condition: service_started
-        
     healthcheck:
       test: ["CMD", "test", "-f", "/app/.streamlit/secrets.toml"]
       interval: 10s
@@ -124,9 +109,6 @@ services:
       - "traefik.http.routers.skyvern-ui.entrypoints=websecure"
       - "traefik.http.routers.skyvern-ui.tls.certresolver=letsencrypt"
       - "traefik.http.services.skyvern-ui.loadbalancer.server.port=8080"
-
-# (Kept your original comment blocks about vaultwarden/bitwarden down here for future use)
-# ...
 
 networks:
   dokploy-network:
