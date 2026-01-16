@@ -181,6 +181,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      # 👇 FIXED: Updated the dependency name to match the new service name
       skyvern-vpn:
         condition: service_started
     healthcheck:
