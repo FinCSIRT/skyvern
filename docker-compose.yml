@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   # =========================================================
-  # 🛡️ VPN GATEWAY (Gluetun)
+  # 🛡️ VPN GATEWAY (Renamed to skyvern-vpn to avoid conflict)
   # =========================================================
-  gluetun:
+  skyvern-vpn:
     image: qmcgaw/gluetun
-    container_name: gluetun
+    container_name: skyvern-vpn
     cap_add:
       - NET_ADMIN
     devices:
@@ -22,14 +22,13 @@ services:
       - FIREWALL_OUTBOUND_SUBNETS=172.16.0.0/12,192.168.0.0/16,10.0.0.0/8
     ports:
       # Optional: HTTP Proxy if you want to use it externally
-      - 8888:8888/tcp 
+      - 8889:8888/tcp  # Changed host port to 8889 to avoid conflict with Lookyloo
     networks:
       - dokploy-network
     restart: always
     
     # -----------------------------------------------------
     # TRAEFIK LABELS FOR SKYVERN API
-    # (Moved here because Skyvern lives inside this container's network)
     # -----------------------------------------------------
     labels:
       - "traefik.enable=true"
@@ -72,9 +71,8 @@ services:
     image: public.ecr.aws/skyvern/skyvern:latest
     restart: on-failure
     
-    # 🔒 ROUTING: This connects Skyvern to the VPN container
-    # ⚠️ CRITICAL: Do NOT add a 'networks:' section to this service, or it will crash.
-    network_mode: "service:gluetun"
+    # 🔒 ROUTING: Connects to the new 'skyvern-vpn' container
+    network_mode: "service:skyvern-vpn"
     
     # env_file:
     #   - .env
@@ -183,7 +181,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      gluetun:
+      skyvern-vpn:
         condition: service_started
     healthcheck:
       test: ["CMD", "test", "-f", "/app/.streamlit/secrets.toml"]
@@ -232,7 +230,7 @@ services:
       - "traefik.http.services.skyvern-ui.loadbalancer.server.port=8080"
       
       # NOTE: Basic Auth was removed in favor of Cloudflare Zero Trust.
-      # If you need Basic Auth back, uncomment below and use double $$ for passwords:
+      # If you need Basic Auth back, uncomment below:
       # - "traefik.http.middlewares.skyvern-auth.basicauth.users=${UI_AUTH_USERS}"
       # - "traefik.http.routers.skyvern-ui.middlewares=skyvern-auth"
 
