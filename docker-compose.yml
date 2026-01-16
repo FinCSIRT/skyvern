@@ -58,6 +58,9 @@ services:
     
     # ✅ FIX 1: Pointing to the new name 'skyvern-vpn'
     network_mode: "service:skyvern-vpn"
+    depends_on:
+      skyvern-vpn:
+        condition: service_started
 
     volumes:
       - ./artifacts:/data/artifacts
@@ -79,13 +82,9 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - OLLAMA_SERVER_URL=${OLLAMA_SERVER_URL}
       - OLLAMA_SUPPORTS_VISION=${OLLAMA_SUPPORTS_VISION}
-    
     depends_on:
       postgres:
         condition: service_healthy
-      # ✅ FIX 2: Dependency matches the new service name
-      skyvern-vpn:
-        condition: service_started
         
     healthcheck:
       test: ["CMD", "test", "-f", "/app/.streamlit/secrets.toml"]
