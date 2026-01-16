@@ -57,7 +57,7 @@ services:
       - "traefik.http.routers.skyvern-api.middlewares=skyvern-cors"
       - "traefik.http.middlewares.skyvern-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS"
       # Strictly allow only your UI domain to access this API
-      - "traefik.http.middlewares.skyvern-cors.headers.accesscontrolalloworiginlist=https://${SKYVERN_UI_DOMAIN}"
+      - "traefik.http.middlewares.skyvern-cors.headers.accesscontrolalloworiginlist=*"
       - "traefik.http.middlewares.skyvern-cors.headers.accesscontrolmaxage=100"
       - "traefik.http.middlewares.skyvern-cors.headers.addvaryheader=true"
 
@@ -189,7 +189,7 @@ services:
 
       # SECURITY: BASIC AUTH MIDDLEWARE
       # 1. Create the middleware using the Environment Variable
-      - "traefik.http.middlewares.skyvern-auth.basicauth.users=${UI_AUTH_USERS}"
+      - "traefik.http.middlewares.skyvern-auth.basicauth.users=${BASIC_AUTH_USER}"
       
       # 2. Attach the middleware to the UI Router
       - "traefik.http.routers.skyvern-ui.middlewares=skyvern-auth"
