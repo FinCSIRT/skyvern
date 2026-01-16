@@ -186,6 +186,13 @@ services:
       - "traefik.http.routers.skyvern-ui.entrypoints=websecure"
       - "traefik.http.routers.skyvern-ui.tls.certresolver=letsencrypt"
       - "traefik.http.services.skyvern-ui.loadbalancer.server.port=8080"
+
+      # SECURITY: BASIC AUTH MIDDLEWARE
+      # 1. Create the middleware using the Environment Variable
+      - "traefik.http.middlewares.skyvern-auth.basicauth.users=${UI_AUTH_USERS}"
+      
+      # 2. Attach the middleware to the UI Router
+      - "traefik.http.routers.skyvern-ui.middlewares=skyvern-auth"
     
     environment:
       # - VITE_ENABLE_CODE_BLOCK=true
