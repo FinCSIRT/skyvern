@@ -56,11 +56,8 @@ services:
     image: public.ecr.aws/skyvern/skyvern:latest
     restart: on-failure
     
-    # ✅ FIX 1: Pointing to the new name 'skyvern-vpn'
+    # ✅ FIX: Pointing to the new name 'skyvern-vpn'
     network_mode: "service:skyvern-vpn"
-    depends_on:
-      skyvern-vpn:
-        condition: service_started
 
     volumes:
       - ./artifacts:/data/artifacts
@@ -82,9 +79,13 @@ services:
       - OLLAMA_MODEL=${OLLAMA_MODEL}
       - OLLAMA_SERVER_URL=${OLLAMA_SERVER_URL}
       - OLLAMA_SUPPORTS_VISION=${OLLAMA_SUPPORTS_VISION}
+    
+    # ✅ FIX: Merged both dependencies into ONE block
     depends_on:
       postgres:
         condition: service_healthy
+      skyvern-vpn:
+        condition: service_started
         
     healthcheck:
       test: ["CMD", "test", "-f", "/app/.streamlit/secrets.toml"]
